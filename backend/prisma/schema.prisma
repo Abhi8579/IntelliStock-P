@@ -1,0 +1,261 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// NOTE: SQLite has no native enum support in Prisma, so all "enum-like" fields
+// below are plain Strings. Allowed values are validated in the application layer
+// (see backend/src/validators). Documented allowed values:
+//   User.role              -> ADMIN | MANAGER | STAFF
+//   Product.status         -> ACTIVE | INACTIVE | DISCONTINUED
+//   InventoryTransaction.type -> SALE | PURCHASE | RETURN | ADJUSTMENT | TRANSFER
+//   Sale.status            -> COMPLETED | PENDING | CANCELLED | REFUNDED
+//   Sale.paymentStatus     -> PAID | UNPAID | PARTIAL
+//   Purchase.status        -> PENDING | ORDERED | RECEIVED | CANCELLED
+//   Notification.type      -> LOW_STOCK | OUT_OF_STOCK | NEW_SALE | PURCHASE_RECEIVED
+//                              | LARGE_ORDER | STOCK_ADJUSTMENT | SYSTEM
+
+model User {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  password      String
+  role          String         @default("STAFF")
+  avatar        String?
+  isActive      Boolean        @default(true)
+  tokenVersion  Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  sales         Sale[]
+  purchases     Purchase[]
+  activityLogs  ActivityLog[]
+  inventoryTxns InventoryTransaction[]
+}
+
+// Powers first-admin setup OTP, and forgot-password OTP for all roles.
+// One row per OTP request; superseded rows are invalidated rather than deleted
+// so there is always an audit trail.
+model OtpToken {
+  id          String    @id @default(cuid())
+  email       String
+  otpHash     String
+  purpose     String    // FIRST_ADMIN_SETUP | PASSWORD_RESET
+  payload     String?   // JSON string - holds pending signup data until OTP is verified
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5)
+  expiresAt   DateTime
+  verifiedAt  DateTime?
+  consumedAt  DateTime?
+  invalidatedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([email, purpose])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+model Supplier {
+  id          String     @id @default(cuid())
+  name        String
+  company     String?
+  email       String?    @unique
+  phone       String?
+  address     String?
+  city        String?
+  taxNumber   String?
+  status      String     @default("ACTIVE")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  products    Product[]
+  purchases   Purchase[]
+}
+
+model Customer {
+  id            String   @id @default(cuid())
+  name          String
+  email         String?  @unique
+  phone         String?
+  address       String?
+  city          String?
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sales         Sale[]
+}
+
+model Product {
+  id           String        @id @default(cuid())
+  name         String
+  sku          String        @unique
+  barcode      String?
+  description  String?
+  image        String?
+  costPrice    Float
+  sellingPrice Float
+  currentStock Int           @default(0)
+  minStock     Int           @default(10)
+  maxStock     Int           @default(1000)
+  status       String        @default("ACTIVE")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  categoryId   String?
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  supplierId   String?
+  supplier     Supplier?     @relation(fields: [supplierId], references: [id])
+
+  saleItems     SaleItem[]
+  purchaseItems PurchaseItem[]
+  inventoryTxns InventoryTransaction[]
+
+  @@index([categoryId])
+  @@index([supplierId])
+}
+
+model Sale {
+  id            String        @id @default(cuid())
+  invoiceNo     String        @unique
+  customerId    String?
+  customer      Customer?     @relation(fields: [customerId], references: [id])
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  subtotal      Float
+  discount      Float         @default(0)
+  tax           Float         @default(0)
+  total         Float
+  status        String        @default("COMPLETED")
+  paymentStatus String        @default("PAID")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  items         SaleItem[]
+  inventoryTxns InventoryTransaction[]
+
+  @@index([customerId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model SaleItem {
+  id        String  @id @default(cuid())
+  saleId    String
+  sale      Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+  total     Float
+
+  @@index([saleId])
+  @@index([productId])
+}
+
+model Purchase {
+  id           String         @id @default(cuid())
+  purchaseNo   String         @unique
+  supplierId   String
+  supplier     Supplier       @relation(fields: [supplierId], references: [id])
+  userId       String
+  user         User           @relation(fields: [userId], references: [id])
+  subtotal     Float
+  total        Float
+  status       String         @default("PENDING")
+  expectedDate DateTime?
+  receivedDate DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  items         PurchaseItem[]
+  inventoryTxns InventoryTransaction[]
+
+  @@index([supplierId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model PurchaseItem {
+  id         String   @id @default(cuid())
+  purchaseId String
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  quantity   Int
+  cost       Float
+  total      Float
+
+  @@index([purchaseId])
+  @@index([productId])
+}
+
+model InventoryTransaction {
+  id         String    @id @default(cuid())
+  productId  String
+  product    Product   @relation(fields: [productId], references: [id])
+  type       String
+  quantity   Int
+  stockAfter Int
+  reference  String?
+  notes      String?
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id])
+  saleId     String?
+  sale       Sale?     @relation(fields: [saleId], references: [id])
+  purchaseId String?
+  purchase   Purchase? @relation(fields: [purchaseId], references: [id])
+  createdAt  DateTime  @default(now())
+
+  @@index([productId])
+  @@index([createdAt])
+}
+
+model Notification {
+  id           String   @id @default(cuid())
+  type         String
+  title        String
+  message      String
+  isRead       Boolean  @default(false)
+  link         String?
+  audienceRole String?  // null = visible to everyone (existing behavior); "ADMIN" = admin-only, etc.
+  createdAt    DateTime @default(now())
+
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  action      String
+  entity      String
+  entityId    String?
+  description String
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Settings {
+  id             String   @id @default("1")
+  companyName    String   @default("IntelliStock Pro")
+  currency       String   @default("INR")
+  lowStockAlerts Boolean  @default(true)
+  salesAlerts    Boolean  @default(true)
+  purchaseAlerts Boolean  @default(true)
+  updatedAt      DateTime @updatedAt
+}

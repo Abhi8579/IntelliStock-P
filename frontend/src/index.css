@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --canvas: 247 247 245;
+  --surface: 255 255 255;
+  --surface-2: 249 248 245;
+  --border: 226 224 217;
+  --ink: 23 23 21;
+  --ink-muted: 100 98 92;
+  --ink-faint: 156 153 145;
+}
+
+.dark {
+  --canvas: 10 13 17;
+  --surface: 17 21 27;
+  --surface-2: 22 27 34;
+  --border: 38 44 53;
+  --ink: 237 238 240;
+  --ink-muted: 158 166 176;
+  --ink-faint: 100 109 121;
+}
+
+* { border-color: rgb(var(--border)); }
+
+html, body, #root { height: 100%; }
+
+body {
+  background-color: rgb(var(--canvas));
+  color: rgb(var(--ink));
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease;
+}
+
+::selection { background-color: rgba(232, 163, 61, 0.28); }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgb(var(--border)); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--ink-faint)); }
+
+.skeleton {
+  background-image: linear-gradient(90deg, rgb(var(--surface-2)) 0px, rgb(var(--border)) 40px, rgb(var(--surface-2)) 80px);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 2px rgb(var(--canvas)), 0 0 0 4px rgba(232, 163, 61, 0.55);
+}
+
+.glass {
+  background-color: rgb(var(--surface) / 0.72);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+
+.card-grid-bg {
+  background-image:
+    linear-gradient(rgb(var(--border) / 0.6) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--border) / 0.6) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
