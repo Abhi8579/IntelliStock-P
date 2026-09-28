@@ -162,7 +162,19 @@ Every response follows `{ success, message, data?, meta? }`; errors follow `{ su
 
 ## 📸 Screenshots
 
-_Add screenshots of the Dashboard, Products, and Analytics pages here._
+## 📸 Screenshots
+
+### Dashboard
+![IntelliStock Pro Dashboard](./screenshots/dashboard.png)
+
+### Product Management
+![IntelliStock Pro Products](./screenshots/products.png)
+
+### Purchases
+![IntelliStock Pro Purchases](./screenshots/purchases.png)
+
+### Analytics
+![IntelliStock Pro Analytics](./screenshots/analytics.png)
 
 ---
 
