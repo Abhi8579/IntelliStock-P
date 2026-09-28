@@ -171,7 +171,7 @@ Every response follows `{ success, message, data?, meta? }`; errors follow `{ su
 ![IntelliStock Pro Products](./screenshots/products.png)
 
 ### Purchases
-![IntelliStock Pro Purchases](./screenshots/purchases.png)
+![IntelliStock Pro Purchases](screenshots/Screenshot 2026-09-29 001303.png)
 
 ### Analytics
 ![IntelliStock Pro Analytics](./screenshots/analytics.png)
