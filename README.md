@@ -4,6 +4,19 @@
 
 A production-grade inventory management SaaS: real-time stock tracking, sales & purchase workflows, supplier/customer management, and business analytics — built on a genuine relational database with audited, transaction-safe inventory movements.
 
+## 🚀 Live Demo
+
+👉 [**Open IntelliStock Pro Live Demo**](https://intelli-stock-p-demo.vercel.app)
+
+### 🔐 Demo Login
+
+1. Open the Live Demo.
+2. Click **Admin** on the login screen.
+3. Demo credentials will be automatically filled.
+4. Click **Login** to explore the application.
+
+> **Note:** A dedicated demo account is provided for evaluation purposes.
+
 ---
 
 ## ✨ Features
