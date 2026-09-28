@@ -171,11 +171,10 @@ Every response follows `{ success, message, data?, meta? }`; errors follow `{ su
 ![IntelliStock Pro Products](./screenshots/products.png)
 
 ### Purchases
-![IntelliStock Pro Purchases](screenshots/Screenshot 2026-09-29 001303.png)
+![IntelliStock Pro Purchases](./screenshots/Screenshot%202026-09-29%20001303.png)
 
 ### Analytics
 ![IntelliStock Pro Analytics](./screenshots/analytics.png)
 
 ---
-
 Built as a demonstration full-stack SaaS project — **v1.0.0**.
